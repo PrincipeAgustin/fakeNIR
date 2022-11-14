@@ -1,0 +1,11 @@
+site_name: Tratamiento Digital de Imagenes 2022
+theme:
+  language: es
+  name: material
+  palette:
+    primary: deep-orange
+    scheme: slate
+
+markdown_extensions:
+  - attr_list
+  - md_in_html
