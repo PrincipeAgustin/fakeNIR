@@ -130,3 +130,6 @@ dmypy.json
 
 # Dataset
 deepNIR/*
+input/*
+output/*
+gen_out/*
