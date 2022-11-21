@@ -129,7 +129,4 @@ dmypy.json
 .pyre/
 
 # Dataset
-deepNIR/*
-input/*
-output/*
-gen_out/*
+deepNIR/
