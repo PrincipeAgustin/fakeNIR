@@ -129,5 +129,4 @@ dmypy.json
 .pyre/
 
 # Dataset
-
-./model/deepNIR/
+./model/deepNIR/*
