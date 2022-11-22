@@ -15,7 +15,7 @@ LAMBDA = 100 # Valor de ajuste de la funcion de perdida
 
 class fakeNIR: 
 
-    def __init__(self, width = IMG_WIDTH, height = IMG_HEIGHT, batch_size = BATCH_SIZE, output_chanels = OUTPUT_CHANNELS, lmd = LAMBDA, work_path = '.', checkpoint_folder = '/checkpoints'):
+    def __init__(self, width = IMG_WIDTH, height = IMG_HEIGHT, batch_size = BATCH_SIZE, output_chanels = OUTPUT_CHANNELS, lmd = LAMBDA, work_path = '.', checkpoint_folder = 'checkpoints'):
         
         self.WIDTH = width
         self.HEIHT = height
@@ -44,8 +44,8 @@ class fakeNIR:
 
         try:
             self.__checkpoint__.restore(tf.train.latest_checkpoint(self.CHECK_PATH))
-        except:
-            pass
+        except Exception as err:
+            print(err)
 
     def __generator__(self):
 
@@ -148,16 +148,16 @@ class fakeNIR:
         gan_loss = self.__loss_obj__(tf.ones_like(disc_generated_output), disc_generated_output)
 
         # Mean absolute error 
-        # Cambiar 
+        # #l1_loss = tf.sqrt(tf.reduce_mean(tf.pow(target - gen_output, 2)))
         l1_loss = tf.reduce_mean(tf.abs(target - gen_output))
-
+        
         total_gen_loss = gan_loss + (LAMBDA * l1_loss)
 
         return total_gen_loss, gan_loss, l1_loss
 
     def predict(self, image):
 
-        return self.generator(image, training=False)
+        return de_normalize(self.generator(image, training=False))
 
     def generate_images(self, test_input, tar, save_filename = '', show_img = False):
 
@@ -216,23 +216,30 @@ class fakeNIR:
 
             for input_im, target_im in dataset.take(size):
 
+                end = '\r'
+
+                if img + 1 == size:
+                    end = '\n'
+                
                 gen_total_loss, gen_gan_loss, gen_l1_loss, disc_loss = self.__traing_step__(input_im, target_im)
-                img_segs = time()
-                print('Epoch: {} / {} - Train: {} / {} - Total time: {:.2f} s - Segs per step: {:.2f}\ngen_total_loss: {} - gen_gan_loss: {} - gen_l1_loss: {} - disc_loss: {}'
+                end_time = time()
+                print('Epoch: {} / {} - Train: {} / {} - Total time: {:.2f} s - Segs per step: {:.2f} - gen_total_loss: {:.4f} - gen_gan_loss: {:.4f} - gen_l1_loss: {:.4f} - disc_loss: {:.4f}'
                         .format(
                             epoch, 
                             epochs, 
                             img, 
                             size, 
-                            time() - start, 
-                            time() - img_segs,
+                            end_time - start, 
+                            end_time - img_segs,
                             gen_total_loss,
                             gen_gan_loss,
                             gen_l1_loss,
                             disc_loss
-                        )
+                        ),
+                        end = end
                     )
                 # Leave last
+                img_segs = time()
                 img+=1
 
             if test_dataset != None:
@@ -241,10 +248,9 @@ class fakeNIR:
                 for imp, tar in test_dataset.take(test_images):
 
                     if save_imgs_path != '':
-
-                        img_path += ('/' + str(img) + '' + str(epoch + 1)).replace('//', '/')
+                        save_imgs_path += ('/' + str(img) + '' + str(epoch + 1)).replace('//', '/')
                     
-                    self.generate_images(imp, tar, img_path, save_imgs_path)
+                    self.generate_images(imp, tar, save_filename=save_imgs_path, show_img=show_images)
                     img+=1
 
             

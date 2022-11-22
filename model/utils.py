@@ -3,7 +3,24 @@ import tensorflow as tf
 IMG_HEIGHT = 960
 IMG_WIDTH =  1280
 
-def load(image_file_1, image_file_2):
+
+def load_image(img_path: str):
+
+    img_type = img_path.split('.')[-1].lower()
+    image = tf.io.read_file(img_path)
+
+    if img_type == 'png':
+        image = tf.io.decode_png(image)
+    elif img_type == 'jpg':
+        image = tf.io.decode_jpeg(image)
+    else:
+        raise Exception('The image "{}" is not a jpg or a png.'.format(img_path))
+
+    image = tf.cast(image, tf.float32)
+    image = normalize(image)
+    return tf.expand_dims(image, 0)
+
+def load_images(image_file_1, image_file_2):
     # Read and decode an image file to a uint8 tensor
     input_image = tf.io.read_file(image_file_1)
     input_image = tf.io.decode_png(input_image)
@@ -22,7 +39,10 @@ def resize(input_image, real_image, height, width):
 
     return input_image, real_image
 
-def normalize(input_image, real_image):
+def normalize(image):
+    return (image / 127.5) - 1
+
+def normalize_images(input_image, real_image):
     input_image = (input_image / 127.5) - 1
     real_image = (real_image / 127.5) - 1
 
@@ -53,15 +73,16 @@ def random_jitter(input_image, real_image, img_height = IMG_HEIGHT, img_width = 
     return input_image, real_image[:,:,0:1]
 
 def load_image_train(image_file, in_path = '.', out_path = '.'):
-    input_image, real_image = load(in_path + '/' + image_file, out_path + '/' + image_file)
+
+    input_image, real_image = load_images(in_path + '/' + image_file, out_path + '/' + image_file)
     input_image, real_image = random_jitter(input_image, real_image)
 
-    input_image, real_image = normalize(input_image, real_image)
+    input_image, real_image = normalize_images(input_image, real_image)
 
     return input_image, real_image
 
 def load_image_test(image_file, in_path = '.', out_path = '.'):
-    input_image, real_image = load(in_path + '/' + image_file, out_path + '/' + image_file)
-    input_image, real_image = normalize(input_image, real_image)
+    input_image, real_image = load_images(in_path + '/' + image_file, out_path + '/' + image_file)
+    input_image, real_image = normalize_images(input_image, real_image)
 
     return input_image, real_image
