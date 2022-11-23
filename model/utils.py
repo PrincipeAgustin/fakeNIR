@@ -4,6 +4,13 @@ IMG_HEIGHT = 960
 IMG_WIDTH =  1280
 
 
+def convert_to_tensor(image):
+
+    image = tf.convert_to_tensor(image)
+    image = tf.cast(image, tf.float32)
+    image = normalize(image)
+    return tf.expand_dims(image, 0)
+
 def load_image(img_path: str):
 
     img_type = img_path.split('.')[-1].lower()
